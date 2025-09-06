@@ -1,5 +1,5 @@
-**Social Media Database Project
-**
+**Social Media Database Project**
+
 This repository contains the SQL script for a social media database, designed and implemented by Group 14 as a final project for an IFT/530 course. The database is structured to store information about users, their posts, comments, likes, and friendships, providing a foundation for a fully functional social media platform.
 
 The database can be used for various purposes, including:
