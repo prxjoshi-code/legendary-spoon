@@ -1,0 +1,839 @@
+/*
+** Author: Group 14 - Yogitha Reddy Putluri, Preksha Joshi
+** Course: IFT/530
+** SQL Server Version: Microsoft SQL Server 2012 (SP1)
+** History
+** Date Created Comments
+** 12/06/2024	Final Project
+*/
+
+-- Create a new database--
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'Group14')
+BEGIN
+    CREATE DATABASE Group14;
+END;
+GO
+
+USE Group14;
+GO
+
+-- Check and Create Users Table--
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Users' AND type = 'U')
+BEGIN
+    CREATE TABLE Users (
+        user_id INT IDENTITY(1,1) PRIMARY KEY, -- Unique identifier for each user
+        username VARCHAR(50) UNIQUE NOT NULL,   -- Username of the user
+        email VARCHAR(100) UNIQUE NOT NULL,     -- Email address of the user
+        password_hash VARCHAR(255) NOT NULL,    -- Hashed password of the user
+        first_name VARCHAR(50) NOT NULL,        -- First name of the user
+        last_name VARCHAR(50) NOT NULL,         -- Last name of the user
+        bio TEXT,                               -- User's bio
+        created_at DATETIME DEFAULT GETDATE() NOT NULL, -- Account creation timestamp
+        updated_at DATETIME DEFAULT GETDATE() NOT NULL -- Last update timestamp
+    );
+END;
+
+GO
+
+-- Check and Create Friendships Table--
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Friendships' AND type = 'U')
+BEGIN
+    CREATE TABLE Friendships (
+        friendship_id INT IDENTITY(1,1) PRIMARY KEY, -- Unique identifier for each friendship
+        user_id1 INT NOT NULL,                        -- User 1 in the friendship
+        user_id2 INT NOT NULL,                        -- User 2 in the friendship
+        created_at DATETIME DEFAULT GETDATE() NOT NULL, -- Friendship creation timestamp
+        FOREIGN KEY (user_id1) REFERENCES Users(user_id),
+        FOREIGN KEY (user_id2) REFERENCES Users(user_id)
+    );
+END;
+
+GO
+
+-- Check and Create PostCategories Table--
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PostCategories' AND type = 'U')
+BEGIN
+    CREATE TABLE PostCategories (
+        category_id INT IDENTITY(1,1) PRIMARY KEY, -- Unique identifier for each category
+        category_name VARCHAR(50) UNIQUE NOT NULL   -- Name of the category
+    );
+END;
+
+GO
+
+-- Check and Create Posts Table--
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Posts' AND type = 'U')
+BEGIN
+    CREATE TABLE Posts (
+        post_id INT IDENTITY(1,1) PRIMARY KEY, -- Unique identifier for each post
+        user_id INT NOT NULL,                   -- User who created the post
+        content VARCHAR(MAX) NOT NULL,           -- Content of the post (changed from TEXT to VARCHAR(MAX))
+        created_at DATETIME DEFAULT GETDATE() NOT NULL, -- Post creation timestamp
+        updated_at DATETIME DEFAULT GETDATE() NOT NULL, -- Last update timestamp
+        likes_count INT DEFAULT 0 NOT NULL,     -- Number of likes for the post
+        comments_count INT DEFAULT 0 NOT NULL,  -- Number of comments on the post
+        category_id INT NOT NULL,               -- Category of the post
+        FOREIGN KEY (user_id) REFERENCES Users(user_id),
+        FOREIGN KEY (category_id) REFERENCES PostCategories(category_id)
+    );
+END;
+
+GO
+
+-- Check and Create Comments Table--
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Comments' AND type = 'U')
+BEGIN
+    CREATE TABLE Comments (
+        comment_id INT IDENTITY(1,1) PRIMARY KEY, -- Unique identifier for each comment
+        post_id INT NOT NULL,                      -- Post the comment is on
+        user_id INT NOT NULL,                      -- User who created the comment
+        content VARCHAR(MAX) NOT NULL,             -- Content of the comment (changed from TEXT to VARCHAR(MAX))
+        created_at DATETIME DEFAULT GETDATE() NOT NULL, -- Comment creation timestamp
+        updated_at DATETIME DEFAULT GETDATE() NOT NULL, -- Last update timestamp
+        FOREIGN KEY (post_id) REFERENCES Posts(post_id),
+        FOREIGN KEY (user_id) REFERENCES Users(user_id)
+    );
+END;
+
+GO
+
+-- Check and Create Likes Table--
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Likes' AND type = 'U')
+BEGIN
+    CREATE TABLE Likes (
+        like_id INT IDENTITY(1,1) PRIMARY KEY, -- Unique identifier for each like
+        user_id INT NOT NULL,                   -- User who liked the post
+        post_id INT NOT NULL,                   -- Post that was liked
+        created_at DATETIME DEFAULT GETDATE() NOT NULL, -- Like creation timestamp
+        FOREIGN KEY (user_id) REFERENCES Users(user_id),
+        FOREIGN KEY (post_id) REFERENCES Posts(post_id)
+    );
+END;
+
+
+GO
+
+
+-- Insert Users if not already present--
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'john_doe', 'john.doe@example.com', 'hashed_password_1', 'John', 'Doe', 'Just another tech enthusiast.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'john.doe@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'jane_smith', 'jane.smith@example.com', 'hashed_password_2', 'Jane', 'Smith', 'Lover of books, travel, and photography.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'jane.smith@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'alice_jones', 'alice.jones@example.com', 'hashed_password_3', 'Alice', 'Jones', 'Avid runner and foodie.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'alice.jones@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'bob_brown', 'bob.brown@example.com', 'hashed_password_4', 'Bob', 'Brown', 'Musician, gamer, and coffee lover.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'bob.brown@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'emma_wilson', 'emma.wilson@example.com', 'hashed_password_5', 'Emma', 'Wilson', 'Passionate about sustainability and design.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'emma.wilson@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'lucas_taylor', 'lucas.taylor@example.com', 'hashed_password_6', 'Lucas', 'Taylor', 'Tech geek and aspiring entrepreneur.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'lucas.taylor@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'mia_lee', 'mia.lee@example.com', 'hashed_password_7', 'Mia', 'Lee', 'Fashionista with a love for photography.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'mia.lee@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'noah_martin', 'noah.martin@example.com', 'hashed_password_8', 'Noah', 'Martin', 'Traveler and nature enthusiast.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'noah.martin@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'olivia_king', 'olivia.king@example.com', 'hashed_password_9', 'Olivia', 'King', 'Yoga practitioner and health coach.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'olivia.king@example.com');
+
+INSERT INTO Users (username, email, password_hash, first_name, last_name, bio, created_at, updated_at)
+SELECT 'luke_clark', 'luke.clark@example.com', 'hashed_password_10', 'Luke', 'Clark', 'Sports fan, tech lover, and foodie.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Users WHERE email = 'luke.clark@example.com');
+
+
+
+-- Insert Post Categories if not already present--
+INSERT INTO PostCategories (category_name)
+SELECT 'Technology' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Technology');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Travel' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Travel');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Food' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Food');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Fitness' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Fitness');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Fashion' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Fashion');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Art' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Art');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Photography' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Photography');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Sports' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Sports');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Entertainment' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Entertainment');
+
+INSERT INTO PostCategories (category_name)
+SELECT 'Health' WHERE NOT EXISTS (SELECT 1 FROM PostCategories WHERE category_name = 'Health');
+
+
+
+-- Insert Friendships if not already present--
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 1, 2, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 1 AND user_id2 = 2) OR (user_id1 = 2 AND user_id2 = 1));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 1, 3, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 1 AND user_id2 = 3) OR (user_id1 = 3 AND user_id2 = 1));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 1, 4, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 1 AND user_id2 = 4) OR (user_id1 = 4 AND user_id2 = 1));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 2, 3, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 2 AND user_id2 = 3) OR (user_id1 = 3 AND user_id2 = 2));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 2, 5, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 2 AND user_id2 = 5) OR (user_id1 = 5 AND user_id2 = 2));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 3, 6, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 3 AND user_id2 = 6) OR (user_id1 = 6 AND user_id2 = 3));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 4, 7, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 4 AND user_id2 = 7) OR (user_id1 = 7 AND user_id2 = 4));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 4, 8, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 4 AND user_id2 = 8) OR (user_id1 = 8 AND user_id2 = 4));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 5, 9, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 5 AND user_id2 = 9) OR (user_id1 = 9 AND user_id2 = 5));
+
+INSERT INTO Friendships (user_id1, user_id2, created_at)
+SELECT 6, 10, GETDATE() WHERE NOT EXISTS (SELECT 1 FROM Friendships WHERE (user_id1 = 6 AND user_id2 = 10) OR (user_id1 = 10 AND user_id2 = 6));
+
+
+-- Insert 20 Posts with all columns--
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 1, 'Exploring the new features in JavaScript ES2024.', GETDATE(), GETDATE(), 10, 5, 1
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 1 AND CAST(content AS VARCHAR(MAX)) = 'Exploring the new features in JavaScript ES2024.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 2, 'My travel guide to the hidden gems of Europe.', GETDATE(), GETDATE(), 15, 7, 2
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 2 AND CAST(content AS VARCHAR(MAX)) = 'My travel guide to the hidden gems of Europe.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 3, 'Top 10 food blogs you must follow in 2024.', GETDATE(), GETDATE(), 25, 10, 3
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 3 AND CAST(content AS VARCHAR(MAX)) = 'Top 10 food blogs you must follow in 2024.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 4, '5 Tips for building your strength and flexibility.', GETDATE(), GETDATE(), 30, 15, 4
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 4 AND CAST(content AS VARCHAR(MAX)) = '5 Tips for building your strength and flexibility.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 5, 'Must-have gadgets for tech lovers in 2024.', GETDATE(), GETDATE(), 20, 8, 1
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 5 AND CAST(content AS VARCHAR(MAX)) = 'Must-have gadgets for tech lovers in 2024.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 6, 'Exploring the latest trends in sustainable fashion.', GETDATE(), GETDATE(), 35, 12, 5
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 6 AND CAST(content AS VARCHAR(MAX)) = 'Exploring the latest trends in sustainable fashion.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 7, 'Photographing wild animals, A beginners guide.', GETDATE(), GETDATE(), 40, 14, 7
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 7 AND CAST(content AS VARCHAR(MAX)) = 'Photographing wild animals, A beginners guide.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 8, 'My favorite food recipes for a healthy lifestyle.', GETDATE(), GETDATE(), 50, 18, 3
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 8 AND CAST(content AS VARCHAR(MAX)) = 'My favorite food recipes for a healthy lifestyle.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 9, 'The beauty of landscape photography in the mountains.', GETDATE(), GETDATE(), 60, 20, 7
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 9 AND CAST(content AS VARCHAR(MAX)) = 'The beauty of landscape photography in the mountains.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 10, 'How to balance work and personal life as a freelancer.', GETDATE(), GETDATE(), 45, 22, 6
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 10 AND CAST(content AS VARCHAR(MAX)) = 'How to balance work and personal life as a freelancer.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 1, 'Exploring new AI technologies and their impact.', GETDATE(), GETDATE(), 12, 6, 1
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 1 AND CAST(content AS VARCHAR(MAX)) = 'Exploring new AI technologies and their impact.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 2, 'Best travel destinations for solo travelers.', GETDATE(), GETDATE(), 18, 9, 2
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 2 AND CAST(content AS VARCHAR(MAX)) = 'Best travel destinations for solo travelers.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 3, 'How to create an amazing food blog from scratch.', GETDATE(), GETDATE(), 28, 14, 3
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 3 AND CAST(content AS VARCHAR(MAX)) = 'How to create an amazing food blog from scratch.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 4, 'Top 5 fitness routines for beginners.', GETDATE(), GETDATE(), 36, 18, 4
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 4 AND CAST(content AS VARCHAR(MAX)) = 'Top 5 fitness routines for beginners.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 5, 'How to organize a tech startup event.', GETDATE(), GETDATE(), 23, 10, 1
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 5 AND CAST(content AS VARCHAR(MAX)) = 'How to organize a tech startup event.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 6, 'Sustainable fashion brands you should support.', GETDATE(), GETDATE(), 33, 16, 5
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 6 AND CAST(content AS VARCHAR(MAX)) = 'Sustainable fashion brands you should support.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 7, 'The most photogenic places in New Zealand.', GETDATE(), GETDATE(), 52, 17, 7
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 7 AND CAST(content AS VARCHAR(MAX)) = 'The most photogenic places in New Zealand.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 8, 'Healthy meal prep ideas for the week.', GETDATE(), GETDATE(), 48, 19, 3
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 8 AND CAST(content AS VARCHAR(MAX)) = 'Healthy meal prep ideas for the week.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 9, 'Exploring architecture through photography.', GETDATE(), GETDATE(), 55, 23, 7
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 9 AND CAST(content AS VARCHAR(MAX)) = 'Exploring architecture through photography.');
+
+INSERT INTO Posts (user_id, content, created_at, updated_at, likes_count, comments_count, category_id)
+SELECT 10, 'Yoga for mental clarity and focus.', GETDATE(), GETDATE(), 38, 21, 4
+WHERE NOT EXISTS (SELECT 1 FROM Posts WHERE user_id = 10 AND CAST(content AS VARCHAR(MAX)) = 'Yoga for mental clarity and focus.');
+
+
+-- Insert 20 Comments if not already present --
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 1, 1, 'Great article! JavaScript ES2024 has some amazing features.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 1 AND user_id = 1 AND CAST(content AS VARCHAR(MAX)) = 'Great article! JavaScript ES2024 has some amazing features.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 2, 2, 'Europe truly has some hidden gems. Thanks for the guide!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 2 AND user_id = 2 AND CAST(content AS VARCHAR(MAX)) = 'Europe truly has some hidden gems. Thanks for the guide!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 3, 3, 'These food blogs are fantastic! Ive already subscribed to some.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 3 AND user_id = 3 AND CAST(content AS VARCHAR(MAX)) = 'These food blogs are fantastic! Ive already subscribed to some.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 4, 4, 'I tried the flexibility routine and its amazing! Thanks for sharing.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 4 AND user_id = 4 AND CAST(content AS VARCHAR(MAX)) = 'I tried the flexibility routine and its amazing! Thanks for sharing.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 5, 5, 'The gadgets list is spot on! Cant wait to get my hands on them.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 5 AND user_id = 5 AND CAST(content AS VARCHAR(MAX)) = 'The gadgets list is spot on! Cant wait to get my hands on them.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 6, 6, 'Sustainable fashion is the future. I love your recommendations!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 6 AND user_id = 6 AND CAST(content AS VARCHAR(MAX)) = 'Sustainable fashion is the future. I love your recommendations!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 7, 7, 'The wildlife photography tips are super helpful, thank you!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 7 AND user_id = 7 AND CAST(content AS VARCHAR(MAX)) = 'The wildlife photography tips are super helpful, thank you!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 8, 8, 'Ive made some of these recipes and they are delicious!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 8 AND user_id = 8 AND CAST(content AS VARCHAR(MAX)) = 'Ive made some of these recipes and they are delicious!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 9, 9, 'This is incredible! The photography tips are perfect for my next trip.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 9 AND user_id = 9 AND CAST(content AS VARCHAR(MAX)) = 'This is incredible! The photography tips are perfect for my next trip.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 10, 10, 'I struggle with work-life balance, this post was really motivating.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 10 AND user_id = 10 AND CAST(content AS VARCHAR(MAX)) = 'I struggle with work-life balance, this post was really motivating.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 1, 2, 'AI technologies are advancing fast, great insights!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 1 AND user_id = 2 AND CAST(content AS VARCHAR(MAX)) = 'AI technologies are advancing fast, great insights!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 2, 3, 'Solo travel is amazing! Cant wait to go on my next adventure.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 2 AND user_id = 3 AND CAST(content AS VARCHAR(MAX)) = 'Solo travel is amazing! Cant wait to go on my next adventure.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 3, 4, 'Your food blog tips are spot on. Ive already started my own blog.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 3 AND user_id = 4 AND CAST(content AS VARCHAR(MAX)) = 'Your food blog tips are spot on. Ive already started my own blog.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 4, 5, 'Fitness routines are always welcome! Thanks for the great tips.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 4 AND user_id = 5 AND CAST(content AS VARCHAR(MAX)) = 'Fitness routines are always welcome! Thanks for the great tips.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 5, 6, 'Tech startup events are essential for networking. Great guide.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 5 AND user_id = 6 AND CAST(content AS VARCHAR(MAX)) = 'Tech startup events are essential for networking. Great guide.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 6, 7, 'I support sustainable brands too. Great post!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 6 AND user_id = 7 AND CAST(content AS VARCHAR(MAX)) = 'I support sustainable brands too. Great post!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 7, 8, 'New Zealand is on my bucket list. Cant wait to visit these places!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 7 AND user_id = 8 AND CAST(content AS VARCHAR(MAX)) = 'New Zealand is on my bucket list. Cant wait to visit these places!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 8, 9, 'Meal prep has changed my life. Thanks for the inspiration.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 8 AND user_id = 9 AND CAST(content AS VARCHAR(MAX)) = 'Meal prep has changed my life. Thanks for the inspiration.');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 9, 10, 'Architecture photography is so rewarding. Loved this post!', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 9 AND user_id = 10 AND CAST(content AS VARCHAR(MAX)) = 'Architecture photography is so rewarding. Loved this post!');
+
+INSERT INTO Comments (post_id, user_id, content, created_at, updated_at)
+SELECT 10, 1, 'Yoga has been so beneficial for me as well. Great post on mental clarity.', GETDATE(), GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Comments WHERE post_id = 10 AND user_id = 1 AND CAST(content AS VARCHAR(MAX)) = 'Yoga has been so beneficial for me as well. Great post on mental clarity.');
+
+
+-- Insert 30 Likes with NOT EXISTS condition--
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 1, 1, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 1 AND post_id = 1);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 2, 2, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 2 AND post_id = 2);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 3, 3, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 3 AND post_id = 3);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 4, 4, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 4 AND post_id = 4);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 5, 5, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 5 AND post_id = 5);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 6, 6, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 6 AND post_id = 6);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 7, 7, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 7 AND post_id = 7);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 8, 8, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 8 AND post_id = 8);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 9, 9, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 9 AND post_id = 9);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 10, 10, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 10 AND post_id = 10);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 1, 3, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 1 AND post_id = 3);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 2, 4, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 2 AND post_id = 4);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 3, 5, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 3 AND post_id = 5);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 4, 6, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 4 AND post_id = 6);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 5, 7, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 5 AND post_id = 7);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 6, 8, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 6 AND post_id = 8);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 7, 9, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 7 AND post_id = 9);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 8, 10, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 8 AND post_id = 10);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 9, 1, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 9 AND post_id = 1);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 10, 2, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 10 AND post_id = 2);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 1, 4, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 1 AND post_id = 4);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 2, 5, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 2 AND post_id = 5);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 3, 6, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 3 AND post_id = 6);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 4, 7, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 4 AND post_id = 7);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 5, 8, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 5 AND post_id = 8);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 6, 9, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 6 AND post_id = 9);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 7, 10, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 7 AND post_id = 10);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 8, 1, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 8 AND post_id = 1);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 9, 2, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 9 AND post_id = 2);
+
+INSERT INTO Likes (user_id, post_id, created_at)
+SELECT 10, 3, GETDATE()
+WHERE NOT EXISTS (SELECT 1 FROM Likes WHERE user_id = 10 AND post_id = 3);
+
+GO
+--POPULATE TABLES
+SELECT * FROM Posts; --FACT TABLE
+SELECT * FROM Comments;--FACT TABLE
+SELECT * FROM Likes;--FACT TABLE
+SELECT * FROM Users;
+SELECT * FROM PostCategories;
+SELECT * FROM Friendships;
+
+-- VIEW 1: Create the view for users with the most active friendships--
+IF EXISTS (SELECT * FROM sys.views WHERE name = 'UsersWithMostActiveFriendships')
+BEGIN
+    DROP VIEW UsersWithMostActiveFriendships;
+END;
+GO
+
+CREATE VIEW UsersWithMostActiveFriendships AS
+SELECT 
+    u.user_id, 
+    u.username, 
+    COUNT(f.friendship_id) AS active_friendships_count
+FROM Users u
+JOIN Friendships f ON u.user_id IN (f.user_id1, f.user_id2)
+WHERE u.username IS NOT NULL
+GROUP BY u.user_id, u.username
+HAVING COUNT(f.friendship_id) > 1;
+GO
+
+-- VIEW 2: Create the view for posts with the most likes
+IF EXISTS (SELECT * FROM sys.views WHERE name = 'PostsWithMostLikes')
+BEGIN
+    DROP VIEW PostsWithMostLikes;
+END;
+GO
+
+CREATE VIEW PostsWithMostLikes AS
+SELECT 
+    p.post_id, 
+    CAST(p.content AS NVARCHAR(MAX)) AS content,  -- Casting to NVARCHAR(MAX)
+    p.likes_count, 
+    u.username
+FROM Posts p
+JOIN Likes l ON p.post_id = l.post_id  -- Joining Posts and Likes tables
+JOIN Users u ON p.user_id = u.user_id  -- Joining Posts and Users tables
+WHERE p.likes_count > 10  -- Restricting to posts with more than 10 likes
+AND p.content IS NOT NULL  -- Ensuring posts have content
+GROUP BY p.post_id, CAST(p.content AS NVARCHAR(MAX)), p.likes_count, u.username
+GO
+
+
+-- VIEW 3: Create the view for top categories by number of posts
+IF EXISTS (SELECT * FROM sys.views WHERE name = 'TopCategoriesByPosts')
+BEGIN
+    DROP VIEW TopCategoriesByPosts;
+END;
+GO
+
+CREATE VIEW TopCategoriesByPosts AS
+SELECT 
+    pc.category_name, 
+    COUNT(p.post_id) AS posts_count
+FROM PostCategories pc
+JOIN Posts p ON pc.category_id = p.category_id  -- Joining PostCategories and Posts tables
+WHERE pc.category_name IS NOT NULL  -- Restricting to categories with a valid name
+GROUP BY pc.category_name
+HAVING COUNT(p.post_id) > 5  -- Restricting to categories with more than 5 posts
+GO
+
+-- AUDIT TABLE: Create the audit table if it does not exist
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'PostCategoriesAudit')
+BEGIN
+    CREATE TABLE PostCategoriesAudit (
+        audit_id INT PRIMARY KEY IDENTITY(1,1),
+        category_id INT,
+        old_category_name NVARCHAR(100),
+        new_category_name NVARCHAR(100),
+        operation_type NVARCHAR(10), -- 'INSERT', 'UPDATE', 'DELETE'
+        change_datetime DATETIME DEFAULT GETDATE()
+    );
+END;
+GO
+
+-- Create a trigger to log inserts into the PostCategories table
+IF EXISTS (SELECT * FROM sys.triggers WHERE name = 'trg_PostCategories_INSERT')
+BEGIN
+    DROP TRIGGER trg_PostCategories_INSERT;
+END;
+GO
+
+CREATE TRIGGER trg_PostCategories_INSERT
+ON PostCategories
+AFTER INSERT
+AS
+BEGIN
+    -- Insert data into the audit table when a new row is added to PostCategories
+    INSERT INTO PostCategoriesAudit (category_id, new_category_name, operation_type, change_datetime)
+    SELECT 
+        i.category_id,
+        i.category_name,
+        'INSERT',
+        GETDATE()
+    FROM inserted i;
+END;
+GO
+
+-- Create a trigger to log updates on the PostCategories table
+IF EXISTS (SELECT * FROM sys.triggers WHERE name = 'trg_PostCategories_UPDATE')
+BEGIN
+    DROP TRIGGER trg_PostCategories_UPDATE;
+END;
+GO
+
+CREATE TRIGGER trg_PostCategories_UPDATE
+ON PostCategories
+AFTER UPDATE
+AS
+BEGIN
+    -- Insert data into the audit table when a row is updated in PostCategories
+    INSERT INTO PostCategoriesAudit (category_id, old_category_name, new_category_name, operation_type, change_datetime)
+    SELECT 
+        d.category_id,
+        d.category_name AS old_category_name,
+        i.category_name AS new_category_name,
+        'UPDATE',
+        GETDATE()
+    FROM deleted d
+    JOIN inserted i ON d.category_id = i.category_id;
+END;
+GO
+
+-- Create a trigger to log deletes from the PostCategories table
+IF EXISTS (SELECT * FROM sys.triggers WHERE name = 'trg_PostCategories_DELETE')
+BEGIN
+    DROP TRIGGER trg_PostCategories_DELETE;
+END;
+GO
+
+CREATE TRIGGER trg_PostCategories_DELETE
+ON PostCategories
+AFTER DELETE
+AS
+BEGIN
+    -- Insert data into the audit table when a row is deleted from PostCategories
+    INSERT INTO PostCategoriesAudit (category_id, old_category_name, operation_type, change_datetime)
+    SELECT 
+        d.category_id,
+        d.category_name,
+        'DELETE',
+        GETDATE()
+    FROM deleted d;
+END;
+GO
+
+-- Insert a new category into the PostCategories table
+INSERT INTO PostCategories (category_name)
+VALUES ('Education');
+GO
+
+-- Verify the data was inserted into the PostCategories table
+SELECT * FROM PostCategories;
+GO
+
+-- Verify the data was recorded in the audit table
+SELECT * FROM PostCategoriesAudit;
+GO
+
+-- Update the category name in the PostCategories table
+UPDATE PostCategories
+SET category_name = 'Technology & Gadgets'
+WHERE category_name = 'Education';
+GO
+
+-- Verify the data was updated in the PostCategories table
+SELECT * FROM PostCategories;
+GO
+
+-- Verify the data was recorded in the audit table
+SELECT * FROM PostCategoriesAudit;
+GO
+
+-- Delete a category from the PostCategories table
+DELETE FROM PostCategories
+WHERE category_name = 'Technology & Gadgets';
+GO
+
+-- Verify the data was deleted from the PostCategories table
+SELECT * FROM PostCategories;
+GO
+
+-- Verify the data was recorded in the audit table
+SELECT * FROM PostCategoriesAudit;
+GO
+
+-- Drop the triggers if needed
+IF EXISTS (SELECT * FROM sys.triggers WHERE name = 'trg_PostCategories_INSERT')
+BEGIN
+    DROP TRIGGER trg_PostCategories_INSERT;
+END;
+GO
+
+IF EXISTS (SELECT * FROM sys.triggers WHERE name = 'trg_PostCategories_UPDATE')
+BEGIN
+    DROP TRIGGER trg_PostCategories_UPDATE;
+END;
+GO
+
+IF EXISTS (SELECT * FROM sys.triggers WHERE name = 'trg_PostCategories_DELETE')
+BEGIN
+    DROP TRIGGER trg_PostCategories_DELETE;
+END;
+GO
+
+-- Drop the audit table if needed
+IF EXISTS (SELECT * FROM sys.tables WHERE name = 'PostCategoriesAudit')
+BEGIN
+    DROP TABLE PostCategoriesAudit;
+END;
+GO
+
+-- STORED PROCEDURES: Check if the stored procedure already exists and drop it if it does
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'GetUserPostCount')
+BEGIN
+    DROP PROCEDURE GetUserPostCount;
+END;
+GO
+
+-- Create the stored procedure to get the total post count for a given user
+CREATE PROCEDURE GetUserPostCount
+    @UserId INT  -- Input parameter for the user ID
+AS
+BEGIN
+    -- Select the total number of posts by the user
+    SELECT COUNT(*) AS TotalPosts
+    FROM Posts
+    WHERE user_id = @UserId;
+END;
+GO
+
+-- Execute the stored procedure to get the post count for user with user_id = 1
+EXEC GetUserPostCount @UserId = 1;
+GO
+
+-- Drop the stored procedure if no longer needed
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'GetUserPostCount')
+BEGIN
+    DROP PROCEDURE GetUserPostCount;
+END;
+GO
+
+-- USER DEFINED FUNCTIONS: Check if the function already exists and drop it if it does
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'FN' AND name = 'GetUserAverageLikes')
+BEGIN
+    DROP FUNCTION GetUserAverageLikes;
+END;
+GO
+
+-- Create the user-defined function to get the average number of likes for a user's posts
+CREATE FUNCTION GetUserAverageLikes (@UserId INT)
+RETURNS DECIMAL(10, 2) -- Return type is DECIMAL to store the average
+AS
+BEGIN
+    DECLARE @AverageLikes DECIMAL(10, 2);
+
+    -- Calculate the average number of likes for posts by the given user
+    SELECT @AverageLikes = AVG(p.likes_count)
+    FROM Posts p
+    WHERE p.user_id = @UserId;
+
+    -- Return the calculated average
+    RETURN @AverageLikes;
+END;
+GO
+
+-- Execute the function to get the average number of likes for user with user_id = 1
+SELECT dbo.GetUserAverageLikes(1) AS AverageLikes;
+GO
+
+-- Drop the user-defined function if no longer needed
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'FN' AND name = 'GetUserAverageLikes')
+BEGIN
+    DROP FUNCTION GetUserAverageLikes;
+END;
+GO
+
+-- CURSOR: Ensure the cursor is cleaned up before running again
+IF CURSOR_STATUS('global', 'UserPostsCursor') >= -1
+BEGIN
+    DEALLOCATE UserPostsCursor;  -- Deallocate the cursor if it's open
+    CLOSE UserPostsCursor;       -- Close the cursor if it's open
+END;
+GO
+
+-- Declare variables to hold cursor data
+DECLARE @UserId INT;
+DECLARE @Username NVARCHAR(100);
+DECLARE @PostCount INT;
+
+-- Declare the cursor for users and their post count
+DECLARE UserPostsCursor CURSOR FOR
+SELECT u.user_id, u.username, COUNT(p.post_id)
+FROM Users u
+LEFT JOIN Posts p ON u.user_id = p.user_id
+GROUP BY u.user_id, u.username;
+
+-- Open the cursor
+OPEN UserPostsCursor;
+
+-- Fetch the first record
+FETCH NEXT FROM UserPostsCursor INTO @UserId, @Username, @PostCount;
+
+-- Loop through all rows and print the username and post count
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    PRINT 'Username: ' + @Username + ', Post Count: ' + CAST(@PostCount AS NVARCHAR(10));
+
+    -- Fetch the next record
+    FETCH NEXT FROM UserPostsCursor INTO @UserId, @Username, @PostCount;
+END;
+
+-- Close and deallocate the cursor after processing
+CLOSE UserPostsCursor;
+DEALLOCATE UserPostsCursor;
+GO
+
+IF CURSOR_STATUS('global', 'UserPostsCursor') >= -1
+BEGIN
+    DEALLOCATE UserPostsCursor;  -- Deallocate the cursor if it's open
+    CLOSE UserPostsCursor;       -- Close the cursor if it's open
+END;
+GO
